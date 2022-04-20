@@ -1,6 +1,7 @@
 import { Table, Model, Column, DataType, ForeignKey } from "sequelize-typescript";
 import { FormatType } from "./FormatType";
 import { StatusType } from "./StatusType";
+import { MediaSet } from "./MediaSet";
 
 @Table({
     timestamps: false,
@@ -13,13 +14,13 @@ export class Media extends Model {
     })
     data!: any;
 
-    @ForeignKey(() => Media)
+    @ForeignKey(() => MediaSet)
     @Column({
         type: DataType.INTEGER,
-        allowNull: true,
-        field: 'parent_id'
+        allowNull: false,
+        field: 'media_set_id'
     })
-    parentId!: number;
+    mediaSetId!: number;
 
     @ForeignKey(() => StatusType)
     @Column({

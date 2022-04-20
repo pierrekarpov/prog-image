@@ -4,22 +4,26 @@ import * as _ from 'lodash';
 import bluebird from 'bluebird';
 import { v4 as uuidv4 } from 'uuid';
 import { Media } from '../db/models/Media';
+import { MediaSet } from '../db/models/MediaSet';
 import { FormatType, FormatTypeList } from '../enums/FormatType';
 import { StatusType } from '../enums/StatusType';
 import { EncodingType } from '../enums/EncodingType';
-import { downloadImageFromString, downloadImageFromURL, processChildImage, uploadToCloudStorage } from '../utils/imageUtils';
+import { downloadImageFromString, downloadImageFromURL, findFormatId, processChildImage, uploadToCloudStorage } from '../utils/imageUtils';
 
 export default {
     uploadImages: asyncHandler(async (req: Request, res: Response) => {
         const { images } = req.body
 
         const response = await bluebird.map(images, async (image: any) => {
-            const formatType = _.get(image, 'format_type_id', FormatType.JPEG)
+            const formatTypeStr = _.get(image, 'format_type')
+            const formatType = findFormatId(formatTypeStr as string) || FormatType.JPEG
             const data = { type: _.get(image, 'type') }
+            const mediaSet = await MediaSet.create()
             const media = {
                 data,
                 formatTypeId: formatType,
                 statusTypeId: StatusType.Pending,
+                mediaSetId: mediaSet.id
             };
 
             const newMedia = await Media.create(media);
@@ -34,7 +38,8 @@ export default {
                     _.set(newData, 'originalURL', _.get(image, 'data'))
                 } else if (_.get(image, 'type') == EncodingType.BASE64) {
                     console.log('converting from base 64')
-                    await downloadImageFromString(_.get(image, 'data'), filepath, (FormatType[formatType] as string).toLowerCase())
+                    const filepathBase64 = filepath.split('.')[0]
+                    await downloadImageFromString(_.get(image, 'data'), filepathBase64, (FormatType[formatType] as string).toLowerCase())
                 }
 
                 const cloudURL = await uploadToCloudStorage(filepath)
@@ -44,7 +49,7 @@ export default {
                 console.log('generate different formats')
                 const missingFormats = _.filter(FormatTypeList, (ftid: any) => ftid != formatType)
                 const childImagePromises = _.map(missingFormats, ftid => {
-                    return processChildImage(newMedia.id, filepath, ftid)
+                    return processChildImage(mediaSet.id, filepath, ftid)
                 })
                 Promise.all(childImagePromises).then(resolve).catch(reject)
             });
@@ -62,8 +67,21 @@ export default {
         return res.status(200).json({ images: response });
     }),
     get: asyncHandler(async (req: Request, res: Response) => {
-        console.log('hai')
-        console.log('req.params', req.params)
-        return res.status(200).json({ test: 123456 });
+        const { id } = req.params
+        const { ext } = req.query
+        let media = await Media.findByPk(id)
+        if (!_.isUndefined(ext) && media) {
+            const matchingFormatType = findFormatId(ext as string)
+            if (matchingFormatType && matchingFormatType != media.formatTypeId) {
+                media = await Media.findOne({
+                    where: {
+                        mediaSetId: media.mediaSetId,
+                        formatTypeId: matchingFormatType
+                    }
+                })
+            }
+        }
+
+        return res.status(200).json(media);
     }),
 };

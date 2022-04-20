@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+      "experimentalDecorators": true,
+      "target": "es6",
+      "moduleResolution": "node",
+      "module": "commonjs",
+      "lib": ["es6", "dom"],
+      "outDir": "dist",
+      "baseUrl": ".",
+      "strict": true,
+      "esModuleInterop": true,
+      "allowSyntheticDefaultImports": true,
+      "resolveJsonModule": true,
+      "sourceMap": true,
+      "noImplicitAny": false,
+      "allowJs": true,
+      "typeRoots": ["node_modules/@types", "./typings"]
+    },
+    "include": ["src/**/*", "typings/*"],
+    "exclude": ["coverage/**/*", "test/**/*", "jest.config.js"]
+  }
+  

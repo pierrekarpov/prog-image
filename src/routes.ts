@@ -9,6 +9,6 @@ const router = express.Router();
 
 // Image
 router.post('/image/upload', ImageController.uploadImages);
-router.get('/image/:uuid', ImageController.get);
+router.get('/image/:id', ImageController.get);
 
 export default router;

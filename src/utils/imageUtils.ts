@@ -1,10 +1,11 @@
 
 import { Media } from '../db/models/Media';
 import { EncodingType } from '../enums/EncodingType';
-import { FormatType } from '../enums/FormatType';
+import { FormatType, FormatTypeList } from '../enums/FormatType';
 import { StatusType as StatusTypeEnum } from '../enums/StatusType';
 
 import { decode } from 'node-base64-image';
+import * as _ from 'lodash';
 const fs = require('fs');
 var jimp = require('jimp');
 
@@ -38,7 +39,7 @@ export async function downloadImageFromURL(url: any, filename: any) {
 
 
 
-export async function processChildImage(parentId: number, filepath: string, ftid: number): Promise<any> {
+export async function processChildImage(mediaSetId: number, filepath: string, ftid: number): Promise<any> {
     const file = await jimp.read(filepath)
     const outFilePathParts = filepath.split('.')
     outFilePathParts[outFilePathParts.length - 1] = `.${(FormatType[ftid] as string).toLowerCase()}`
@@ -48,7 +49,7 @@ export async function processChildImage(parentId: number, filepath: string, ftid
     const cloudURL = await uploadToCloudStorage(outFilePath)
 
     const childMedia = {
-        parentId,
+        mediaSetId,
         data: {
             data: cloudURL,
             type: EncodingType.URL
@@ -71,4 +72,8 @@ export async function uploadToCloudStorage(filepath: string): Promise<any> {
     const cloudPrefixUrl = 'http://some-cloud.com'
     const fileName = filepath.split('/')
     return `${cloudPrefixUrl}/${fileName[fileName.length - 1]}`
+}
+
+export function findFormatId(formatString: string) {
+    return _.find(FormatTypeList, (ft) => _.isEqual(FormatType[ft], (formatString as string).toUpperCase()))
 }
