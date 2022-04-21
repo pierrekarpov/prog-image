@@ -63,15 +63,19 @@ export async function processChildImage(mediaSetId: number, filepath: string, ft
 }
 
 export async function downloadImageFromString(str: string, filepath: string, extension: string): Promise<any> {
-    // let imageBuffer = Buffer.from(str, 'base64')
     await decode(str, { fname: filepath, ext: extension });
-    // Jimp.read(imageBuffer,
 }
 
 export async function uploadToCloudStorage(filepath: string): Promise<any> {
     const cloudPrefixUrl = 'http://some-cloud.com'
-    const fileName = filepath.split('/')
-    return `${cloudPrefixUrl}/${fileName[fileName.length - 1]}`
+    const fileName = getFileNameFromFilePath(filepath)
+    return `${cloudPrefixUrl}/${fileName}`
+}
+
+export function getFileNameFromFilePath(filepath: string) {
+    const filepathParts = filepath.split('/')
+    return filepathParts[filepathParts.length - 1]
+
 }
 
 export function findFormatId(formatString: string) {

@@ -14,9 +14,9 @@
       "sourceMap": true,
       "noImplicitAny": false,
       "allowJs": true,
-      "typeRoots": ["node_modules/@types", "./typings"]
+      "typeRoots": ["node_modules/@types", "./typings"],
+      "types": ["node", "jest"]
     },
-    "include": ["src/**/*", "typings/*"],
-    "exclude": ["coverage/**/*", "test/**/*", "jest.config.js"]
+    "include": ["src/**/*", "typings/*", "src/test/**/*", "**/*.spec.ts", "**/*.test.ts"]
   }
   
